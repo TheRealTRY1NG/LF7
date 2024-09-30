@@ -252,7 +252,7 @@ This process balances ambition with practicality, ensuring that the product can 
 
 ## 5. Business canvas model
 
-TO-DO!
+![Flowchart](Ideate/Business_Canvas_Model.drawio)
 
 </br>
 
@@ -264,15 +264,14 @@ TO-DO!
 </br>
 
 
-## 7. Feedback sheets
+## 7. Technical solution (overview)
 
-TO-DO!
+### 7.1. Activity-Diagram
 
-</br>
+![Flowchart](Ideate/Activity-Diagram.drawio)
 
+### 7.2. Use-Case-Diagram
 
-## 8. Technical solution (overview)
-
-TO-DO! (activity-diagram und use-case-diagram)
+![Flowchart](Ideate/Use-Case-Diagram.drawio)
 
 </br>
