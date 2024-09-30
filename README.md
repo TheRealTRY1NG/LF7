@@ -252,7 +252,7 @@ This process balances ambition with practicality, ensuring that the product can 
 
 ## 5. Business canvas model
 
-![Flowchart](Ideate/Business_Canvas_Model.drawio)
+![alt text](Ideate/Business_Canvas_Model.drawio.svg "Business Canvas Model")
 
 </br>
 
@@ -268,10 +268,10 @@ This process balances ambition with practicality, ensuring that the product can 
 
 ### 7.1. Activity-Diagram
 
-![Flowchart](Ideate/Activity-Diagram.drawio)
+![alt text](Ideate/Activity-Diagram.drawio.svg "Activity-Diagram")
 
 ### 7.2. Use-Case-Diagram
 
-![Flowchart](Ideate/Use-Case-Diagram.drawio)
+![alt text](Ideate/Use-Case-Diagram.drawio.svg "Use-Case-Diagram")
 
 </br>
