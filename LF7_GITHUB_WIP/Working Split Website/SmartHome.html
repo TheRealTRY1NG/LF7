@@ -1,0 +1,201 @@
+<html><head><link rel="stylesheet" href="styles.css"><base href="https://smarterhome.app/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>SmarterHome Routine Creator</title>
+  </head>
+  <body>
+    <button class="toggle-dark-mode" id="darkModeToggle">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm0 4c-4.418 0-8 3.582-8 8s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 2c3.314 0 6 2.686 6 6s-2.686 6-6 6-6-2.686-6-6 2.686-6 6-6z"/>
+      </svg>
+    </button>
+  
+    <a href="https://github.com/smarterhome" target="_blank" rel="noopener noreferrer" class="social-media">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+      </svg>
+    </a>
+  
+    <div class="container">
+      <h1>SmarterHome Routine Creator</h1>
+      <h2>Available Devices</h2>
+      <div class="device-list" id="deviceList">
+        <div class="device" data-device="heating">Heating</div>
+        <div class="device" data-device="coffee_maker">Coffee Maker</div>
+        <div class="device" data-device="lights">Lights</div>
+        <div class="device" data-device="blinds">Blinds</div>
+        <div class="device" data-device="tv">TV</div>
+      </div>
+  
+      <div class="routine-builder">
+        <h2 id="routineFormTitle">Create New Routine</h2>
+        <input type="text" id="routineName" placeholder="Routine Name" required>
+        <input type="time" id="routineTime" required>
+        <div id="selectedDevices"></div>
+        <label>
+          <input type="checkbox" id="skipWeekends"> Skip Weekends
+        </label>
+        <label>
+          <input type="checkbox" id="skipHolidays"> Skip Holidays
+        </label>
+        <button id="saveRoutine">Save Routine</button>
+        <button id="cancelEdit" style="display: none;">Cancel Edit</button>
+      </div>
+  
+      <div class="routine-list" id="routineList">
+        <h2>Your Routines</h2>
+      </div>
+    </div>
+  
+    <script>
+      const deviceList = document.getElementById('deviceList');
+      const selectedDevices = document.getElementById('selectedDevices');
+      const routineName = document.getElementById('routineName');
+      const routineTime = document.getElementById('routineTime');
+      const skipWeekends = document.getElementById('skipWeekends');
+      const skipHolidays = document.getElementById('skipHolidays');
+      const saveRoutineBtn = document.getElementById('saveRoutine');
+      const cancelEditBtn = document.getElementById('cancelEdit');
+      const routineList = document.getElementById('routineList');
+      const routineFormTitle = document.getElementById('routineFormTitle');
+      const darkModeToggle = document.getElementById('darkModeToggle');
+  
+      let selectedDevicesArray = [];
+      let routines = [];
+      let editingIndex = -1;
+  
+      deviceList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('device')) {
+          e.target.classList.toggle('selected');
+          updateSelectedDevices();
+        }
+      });
+  
+      function updateSelectedDevices() {
+        selectedDevicesArray = Array.from(document.querySelectorAll('.device.selected')).map(device => device.dataset.device);
+        selectedDevices.innerHTML = '';
+        selectedDevicesArray.forEach(device => {
+          const deviceElement = document.createElement('div');
+          deviceElement.innerHTML = `
+            <h3>${device.replace('_', ' ')}</h3>
+            <label>Offset (minutes):
+              <input type="number" id="${device}_offset" min="0" value="0">
+            </label>
+          `;
+          selectedDevices.appendChild(deviceElement);
+        });
+      }
+  
+      saveRoutineBtn.addEventListener('click', () => {
+        const name = routineName.value;
+        const time = routineTime.value;
+        if (!name || !time) {
+          alert('Please enter a name and set a time for the routine');
+          return;
+        }
+  
+        const routine = {
+          name,
+          time,
+          devices: selectedDevicesArray.map(device => ({
+            name: device,
+            offset: document.getElementById(`${device}_offset`).value
+          })),
+          skipWeekends: skipWeekends.checked,
+          skipHolidays: skipHolidays.checked
+        };
+  
+        if (editingIndex === -1) {
+          routines.push(routine);
+        } else {
+          routines[editingIndex] = routine;
+          editingIndex = -1;
+          routineFormTitle.textContent = 'Create New Routine';
+          saveRoutineBtn.textContent = 'Save Routine';
+          cancelEditBtn.style.display = 'none';
+        }
+  
+        updateRoutineList();
+        resetForm();
+      });
+  
+      cancelEditBtn.addEventListener('click', () => {
+        editingIndex = -1;
+        routineFormTitle.textContent = 'Create New Routine';
+        saveRoutineBtn.textContent = 'Save Routine';
+        cancelEditBtn.style.display = 'none';
+        resetForm();
+      });
+  
+      function updateRoutineList() {
+        routineList.innerHTML = '<h2>Your Routines</h2>';
+        routines.forEach((routine, index) => {
+          const routineItem = document.createElement('div');
+          routineItem.classList.add('routine-item');
+          routineItem.innerHTML = `
+            <h3>${routine.name} - ${routine.time}</h3>
+            <p>Devices: ${routine.devices.map(d => `${d.name} (offset: ${d.offset}min)`).join(', ')}</p>
+            <p>Skip Weekends: ${routine.skipWeekends ? 'Yes' : 'No'}</p>
+            <p>Skip Holidays: ${routine.skipHolidays ? 'Yes' : 'No'}</p>
+            <button class="edit" data-index="${index}">Edit</button>
+            <button class="delete" data-index="${index}">Delete</button>
+          `;
+          routineList.appendChild(routineItem);
+        });
+  
+        document.querySelectorAll('.edit').forEach(btn => {
+          btn.addEventListener('click', (e) => editRoutine(e.target.dataset.index));
+        });
+  
+        document.querySelectorAll('.delete').forEach(btn => {
+          btn.addEventListener('click', (e) => deleteRoutine(e.target.dataset.index));
+        });
+      }
+  
+      function editRoutine(index) {
+        const routine = routines[index];
+        routineName.value = routine.name;
+        routineTime.value = routine.time;
+        skipWeekends.checked = routine.skipWeekends;
+        skipHolidays.checked = routine.skipHolidays;
+  
+        document.querySelectorAll('.device').forEach(device => {
+          device.classList.remove('selected');
+          if (routine.devices.some(d => d.name === device.dataset.device)) {
+            device.classList.add('selected');
+          }
+        });
+  
+        updateSelectedDevices();
+        routine.devices.forEach(device => {
+          const offsetInput = document.getElementById(`${device.name}_offset`);
+          if (offsetInput) offsetInput.value = device.offset;
+        });
+  
+        editingIndex = index;
+        routineFormTitle.textContent = 'Edit Routine';
+        saveRoutineBtn.textContent = 'Update Routine';
+        cancelEditBtn.style.display = 'inline-block';
+      }
+  
+      function deleteRoutine(index) {
+        if (confirm('Are you sure you want to delete this routine?')) {
+          routines.splice(index, 1);
+          updateRoutineList();
+        }
+      }
+  
+      function resetForm() {
+        routineName.value = '';
+        routineTime.value = '';
+        skipWeekends.checked = false;
+        skipHolidays.checked = false;
+        document.querySelectorAll('.device.selected').forEach(device => device.classList.remove('selected'));
+        selectedDevices.innerHTML = '';
+        selectedDevicesArray = [];
+      }
+  
+      darkModeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+      });
+  
+      updateRoutineList();
+    </script>
+  </body></html>
