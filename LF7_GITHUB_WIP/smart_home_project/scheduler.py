@@ -1,34 +1,34 @@
 import schedule
 import time
-#import RPi.GPIO as GPIO
-try:
-    import RPi.GPIO as GPIO  # Import the real GPIO library if running on Raspberry Pi
-except (ImportError, RuntimeError):
-    # If you're not on a Raspberry Pi, use the mock version
-    from mock_gpio import GPIO
+from device import *
 
-LED_PIN = 18
+# Define devices
+heater = Device('Heater', 19, 20)
+coffeeMachine = Device('Coffee machine', 26, 25)
+lights = Device('Lights', 29, 30)
+blinds = Device('Blinds', 33, 34)
+tv = Device('TV', 40, 39)
 
-def turn_on_led():
-    GPIO.output(LED_PIN, GPIO.HIGH)
-    print("Lights on!")
+#To-Do @LUCAS
+def add_routine(routine, routine_action):
+    device_name = routine_action['device']
+    chosenDevice = ""
+    
+    if device_name == "heating":
+        chosenDevice = heater   
+    elif device_name == "coffee maker":
+        chosenDevice = coffeeMachine 
+    elif device_name == "lights":
+        chosenDevice = lights 
+    elif device_name == "blinds":
+        chosenDevice = blinds 
+    elif device_name == "tv":
+        chosenDevice = tv  
 
-def turn_off_led():
-    GPIO.output(LED_PIN, GPIO.LOW)
-    print("Lights off!")
+    job = schedule.every().day.at(routine['time'] - routine_action['offset']).do(lambda: chosenDevice.switch_state(routine_action['state'])).tag(routine['name'])
+    print(f'Added {job.toString()} to scheduler!')
 
-def add_routine(routine):
-    action = routine['action']
-    if action == 'turn_on':
-        schedule.every().day.at(routine['time']).do(turn_on_led)
-    elif action == 'turn_off':
-        schedule.every().day.at(routine['time']).do(turn_off_led)
-
+#To-Do @LUCAS
 def remove_routine(routine):
-    # This is a simplified method to remove jobs based on the time
-    schedule.clear(routine['time'])
-
-def run_scheduler():
-    while True:
-        schedule.run_pending()
-        time.sleep(1)
+    schedule.clear(routine['name'])
+    print(f'Removed the routine {routine['name']} from scheduler!')

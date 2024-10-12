@@ -1,21 +1,15 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from functools import wraps
+from scheduler import *
+import os
 import json
 import schedule
+import scheduler
 import time
 import threading
-try:
-    import RPi.GPIO as GPIO
-except (ImportError, RuntimeError):
-    from mock_gpio import GPIO
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
-
-GPIO.setmode(GPIO.BCM)
-GPIO.setwarnings(False)
-LED_PIN = 18
-GPIO.setup(LED_PIN, GPIO.OUT)
 
 routines = []
 try:
@@ -38,27 +32,49 @@ def login_required(f):
 def index():
     return render_template('index.html', routines=routines)
 
+#To-Do @LUCAS
 @app.route('/add_routine', methods=['POST'])
 @login_required
-def add_routine_route():
+def add_routine_route():  
     routine = {
-        'name': request.form['name'],
-        'time': request.form['time'],
-        'action': request.form['action']
+        #Name of the routine (should be unique)
+        'name': request.form['routineName'],
+        #Time of the routines start
+        'time': request.form['routineTime']
     }
     routines.append(routine)
     with open('routines.json', 'w') as f:
         json.dump(routines, f)
-    schedule.every().day.at(routine['time']).do(lambda action=routine['action']: turn_on_led(action))
+
+    #for each selected device add:
+        routine_action = {
+            #Name of the device (should be unique)
+            'device': request.form['device'],
+            #State the device should go into ("ON" or "OFF")
+            'state': request.form['state'],
+            #Offset for devices state change
+            'offset': request.form['offset']
+        }    
+            
+        with open(routine['name'] + '.json', 'w') as f:
+            json.dump(routine_action, f)
+
+        scheduler.add_Routine(routine, routine_action)
+   
     return redirect(url_for('index'))
 
 @app.route('/delete_routine/<int:index>')
 @login_required
 def delete_routine(index):
     routine = routines.pop(index)
+
     with open('routines.json', 'w') as f:
         json.dump(routines, f)
-    schedule.clear(routine['time'])
+
+    os.remove(routine['name'] + '.json')
+
+    scheduler.remove_Routine(routine)
+
     return redirect(url_for('index'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -73,11 +89,7 @@ def login():
 def logout():
     session['logged_in'] = False
     return redirect(url_for('login'))
-
-def turn_on_led(action):
-    print(f"Turning on {action}")
-    GPIO.output(LED_PIN, GPIO.HIGH)
-
+  
 def run_scheduler():
     while True:
         schedule.run_pending()
